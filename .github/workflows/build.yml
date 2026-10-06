@@ -1,25 +1,24 @@
 name: Build Android APK
+
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   workflow_dispatch:
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-    - run: |
-        sudo apt-get update
-        sudo apt-get install -y ccache git libffi-dev libssl-dev python3-dev zip unzip openjdk-17-jdk
-        pip install --upgrade pip
-        pip install buildozer cython
-    - run: |
-        cd ~/work/*/*
-        buildozer android debug
-    - uses: actions/upload-artifact@v4
-      with:
-        name: NovaVPN-APK
-        path: bin/*.apk
+      - uses: actions/checkout@v4
+
+      - name: Build with Buildozer
+        uses: ArtemSydoryk/buildozer-action@v1
+        with:
+          workdir: .
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: NovaVPN-APK
+          path: bin/*.apk
