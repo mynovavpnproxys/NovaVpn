@@ -1,0 +1,18 @@
+{
+  "app_name": "Nova VPN",
+  "version": "1.0.0",
+  "clean_ips_count": 8420,
+  "protocols": [
+    "VLESS",
+    "WireGuard",
+    "WARP",
+    "MASQUE"
+  ],
+  "telegram_dependency": false,
+  "ui_tabs": [
+    "Dashboard",
+    "Servers",
+    "Announcements",
+    "Settings"
+  ]
+}
