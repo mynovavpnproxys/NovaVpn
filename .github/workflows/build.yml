@@ -32,14 +32,52 @@ jobs:
 
       - name: Clean Termux paths and configure buildozer.spec
         run: |
-          sed -i '/android.sdk_path/d' buildozer.spec
-          sed -i '/android.ndk_path/d' buildozer.spec
-          sed -i '/android.ant_path/d' buildozer.spec
-          sed -i 's|/data/data/com.termux/files/home|~|g' buildozer.spec
-          if ! grep -q 'android.accept_sdk_license' buildozer.spec; then
-            echo '' >> buildozer.spec
-            echo 'android.accept_sdk_license = True' >> buildozer.spec
-          fi
+          python3 -c "
+import re
+with open('buildozer.spec', 'r') as f:
+    content = f.read()
+
+lines = content.splitlines()
+new_lines = []
+seen_api = False
+seen_minapi = False
+seen_ndk = False
+seen_bt = False
+
+for line in lines:
+    l = line.strip()
+    if l.startswith('android.sdk_path') or l.startswith('android.ndk_path') or l.startswith('android.ant_path'):
+        continue
+    if re.match(r'^\s*#?\s*android\.api\s*=', line):
+        if not seen_api:
+            new_lines.append('android.api = 33')
+            seen_api = True
+    elif re.match(r'^\s*#?\s*android\.minapi\s*=', line):
+        if not seen_minapi:
+            new_lines.append('android.minapi = 21')
+            seen_minapi = True
+    elif re.match(r'^\s*#?\s*android\.ndk\s*=', line):
+        if not seen_ndk:
+            new_lines.append('android.ndk = 25b')
+            seen_ndk = True
+    elif re.match(r'^\s*#?\s*android\.build_tools_version\s*=', line):
+        if not seen_bt:
+            new_lines.append('android.build_tools_version = 33.0.2')
+            seen_bt = True
+    else:
+        new_lines.append(line.replace('/data/data/com.termux/files/home', '~'))
+
+new_content = '
+'.join(new_lines)
+if 'android.accept_sdk_license' not in new_content:
+    new_content += '
+android.accept_sdk_license = True
+'
+
+with open('buildozer.spec', 'w') as f:
+    f.write(new_content)
+print('Updated buildozer.spec successfully!')
+"
 
       - name: Build APK with Buildozer
         run: |
